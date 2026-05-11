@@ -24,7 +24,7 @@ The core idea is to create our own:
 
 We will build the library in two possible ways.
 
-### Option 1: Using `useSyncExternalStore.`
+### Option 1: Using `useSyncExternalStore`
 
 This is the cleaner and more React-friendly approach.
 
@@ -66,7 +66,7 @@ The store will use TypeScript generics so users can define any state shape.
 
 Example:
 
-``` ts
+```ts
 const store = createStore({
   count: 0,
   theme: "dark",
@@ -74,3 +74,70 @@ const store = createStore({
     name: "John",
   },
 });
+```
+
+TypeScript should understand the correct types.
+
+## 6. Listener/Subscriber System
+
+The store will maintain a list of listeners. A listener is a function that runs when the store changes.
+
+We will use a `Set` instead of an array because it avoids duplicate listeners and makes removing listeners easier.
+
+Flow:
+
+```txt
+Component uses store value
+↓
+Component subscribes to the store
+↓
+State changes through setState()
+↓
+Store notifies listeners
+↓
+React checks latest value
+↓
+Only components using changed values re-render
+```
+
+Listeners are necessary because the state is outside React. Without listeners, React would not know that the store has changed.
+
+## 7. React Hooks
+
+The library will expose simple custom hooks for React components.
+
+Main hooks:
+
+```ts
+useStoreValue(key)
+useStoreSetter(key)
+```
+
+### `useStoreValue(key)`
+
+Used to read a value from the store.
+
+Example:
+
+```ts
+const count = useStoreValue("count");
+```
+
+### `useStoreSetter(key)`
+
+Used to update a value in the store.
+
+Example:
+
+```ts
+const setCount = useStoreSetter("count");
+
+setCount(5);
+```
+
+This keeps the first version simple and avoids selector complexity.
+
+## 8. Re-render Behaviour
+
+One important goal is that only components using a changed state should re-render.
+With `useSyncExternalStore`, React checks the returned snapshot. If the selected value is the same, React does not need to re-render that component.
